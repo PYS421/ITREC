@@ -1,58 +1,54 @@
-# BERT Chinese Text Classification
-
-## 📌 项目简介
-
-本项目基于 BERT 预训练模型，实现中文文本分类任务。
-
-使用：
-
-- PyTorch
-- HuggingFace Transformers
-- BERT-base-Chinese
-- SwanLab
-
-
-项目目标：
-
-通过微调 BERT 模型，实现对中文新闻文本进行自动分类，并记录模型训练过程。
-
-
-
-项目特点
-
-- ✅ 基于预训练 BERT 模型
-- ✅ 支持 GPU 加速训练
-- ✅ 使用 HuggingFace Transformers
-- ✅ SwanLab 实验可视化
-- ✅ 保存最佳模型参数
-- ✅ 支持训练集、验证集、测试集评估
-
-
-
 项目结构
+├── demo1.py # 完整代码：数据加载、模型、训练、评估
 
-BERT-Text-Classification
+文件说明
+demo1.py：全部业务代码，包含数据集读取、分词器处理、BERT模型构建、训练循环、评估逻辑。 
 
-│
-├── train.py # 模型训练代码
-│
-├── best_model.pth # 最佳模型参数
-│
-├── README.md # 项目说明
-│
-└── images
-└── swanlab.png # 实验结果截图
+数据集信息
+训练集：3000条
+验证集：1000条
+测试集：1064条
+分类类别：15条
 
+类别ID	类别名称
+100	新闻故事
+101	新闻文化
+102	新闻娱乐
+103	新闻体育
+104	新闻财经
+106	新闻房产
+107	新闻汽车
+108	新闻教育
+109	新闻科技
+110	新闻军事
+112	新闻旅游
+113	新闻国际
+114	股票
+115	新闻农业
+116	新闻游戏
+实验超参数
+                第一组                  第二组                   第三组                 
+max_len：        128                     128                      128                    
+batch_size：     16                     16                       16                     
+epoch：          3                      10                        10                 
+lr：        2e-5                    2e-5                    1e-5               
+GPU训练
+训练结果（dev)   0.784-0.812       0.784-0.822         0.8-0.834     
+环境依赖安装
+使用 pip 安装 torch transformers tqdm numpy swanlab
 
-数据说明
-数据格式：
-news_id_!_label_code_!_label_name_!_title_!_keywords
-| 字段         | 说明   |
-| ---------- | ---- |
-| news_id    | 新闻编号 |
-| label_code | 类别编号 |
-| label_name | 文本类别 |
-| title      | 新闻标题 |
-| keywords   | 关键词  |
-示例：
-1_!_100_!_财经_!_股票市场上涨_!_股票 金融
+实验结果说明
+1. 增加 epoch 可以提升模型训练充分程度，使验证集准确率从 0.812 提升至 0.822。
+
+2. 在相同 epoch 条件下降低学习率，可以提高模型微调稳定性，使准确率进一步提升至 0.834。
+
+最终选择第三组参数作为模型最佳训练配置：
+
+- max_len: 128
+- batch_size: 16
+- epoch: 10
+- learning_rate: 1e-5
+  第三组保持epoch=10，降低dropout至1e-5，准确率提升至0.834。化结果可见如下图所示：
+<img width="1122" height="670" alt="image" src="https://github.com/user-attachments/assets/5a177def-8151-46ca-b414-8b144d374b7f" />
+现象总结：
+实验结果表明，增加 epoch 可以提高模型对文本特征的学习能力，而降低学习率能够增强 BERT 微调过程的稳定性。通过调整超参数，模型 Dev Accuracy 从初始 0.812 提升至 0.834，其中 epoch=10、learning_rate=1e-5 的配置取得最佳效果。
