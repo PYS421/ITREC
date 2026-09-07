@@ -1,8 +1,6 @@
-import pandas as pd
 import torch
-
 from torch.utils.data import Dataset
-
+from transformers import DataCollatorWithPadding
 
 columns = [
     "news_id",
@@ -12,71 +10,129 @@ columns = [
     "keywords"
 ]
 
-
 def load_data(path):
 
-    return pd.read_csv(
+
+    data=[]
+
+
+    with open(
         path,
-        sep="_!_",
-        names=columns,
-        engine="python"
-    )
+        "r",
+        encoding="utf-8"
+    ) as f:
 
 
+        for line in f:
+
+
+            line=line.strip()
+
+
+            row=line.split("_!_")
+
+
+            item={
+
+                "news_id": row[0],
+
+                "label_code": row[1],
+
+                "label_name": row[2],
+
+                "title": row[3],
+
+                "keywords": row[4]
+
+            }
+
+
+            data.append(item)
+
+
+
+    return data
 
 class NewsDataset(Dataset):
 
+
     def __init__(
             self,
-            df,
+            data,
             tokenizer
     ):
 
-        self.texts = df["title"].tolist()
+        self.data=data
 
-        self.labels = df["label"].tolist()
-
-        self.tokenizer = tokenizer
+        self.tokenizer=tokenizer
 
 
 
     def __len__(self):
 
-        return len(self.labels)
+        return len(self.data)
 
 
 
     def __getitem__(self,index):
 
-        text = str(
-            self.texts[index]
+
+        item=self.data[index]
+
+
+        text=str(
+            item["title"]
         )
 
-        label = self.labels[index]
+
+        label=item["label"]
 
 
-        encode = self.tokenizer(
+
+        encode=self.tokenizer(
             text,
             max_length=128,
-            padding="max_length",
             truncation=True,
-            return_tensors="pt"
+
         )
+        encode["labels"] = label
+
+        return encode
 
 
         return {
 
+
             "input_ids":
+
                 encode["input_ids"].squeeze(0),
 
 
+
             "attention_mask":
+
                 encode["attention_mask"].squeeze(0),
 
 
+
             "labels":
+
                 torch.tensor(
+
                     label,
+
                     dtype=torch.long
+
                 )
+
         }
+
+#添加动态pad
+def get_collate_fn(tokenizer):
+
+
+    return DataCollatorWithPadding(
+
+        tokenizer=tokenizer
+
+    )
